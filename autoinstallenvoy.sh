@@ -2,38 +2,32 @@
 
 # 变量
 
+
+port="9902:9902"
+hex_pub_key="0409F9DF311E5421A150DD7D161E4BC5C672179FAD1833FC076BB08FF356F35020CCEA490CE26775A52DC6EA718CC1AA600AED05FBF35E084A6632F6072DA9AD13"
+hex_pri_key="3945208F7B2144B13F36E38AC6D39F95889393692860B51A42FB81EF4DF7C5B8"
+config="envoy.yaml"
+folder="envoy"
+
+path="$(pwd)/${folder}"
+configpath="${path}/${config}"
+
+run="docker run -e HEX_PUB_KEY=${hex_pub_key} -e HEX_PRI_KEY=${hex_pri_key} -p ${port} -v ${path}:/home/envoy/custom ccr.ccs.tencentyun.com/weixincloud/wxsmgw:v1 /usr/local/bin/envoy -c /home/envoy/custom/${config} -l debug"
+
 colorbegin="\e[31m"
 colorend="\e[0m"
 
-
 printf "${colorbegin}"
 printf "%s\n\n" "----------config begin----------"
-
-port="9902:9902"
 printf "%s\n" "${port}"
-
-hex_pub_key="0409F9DF311E5421A150DD7D161E4BC5C672179FAD1833FC076BB08FF356F35020CCEA490CE26775A52DC6EA718CC1AA600AED05FBF35E084A6632F6072DA9AD13"
 printf "%s\n" "${hex_pub_key}"
-
-hex_pri_key="3945208F7B2144B13F36E38AC6D39F95889393692860B51A42FB81EF4DF7C5B8"
 printf "%s\n" "${hex_pri_key}"
-
-config="envoy.yaml"
 printf "%s\n" "${config}"
-
-folder="envoy"
 printf "%s\n" "${folder}"
-
-path="$(pwd)/${folder}"
 printf "%s\n" "${path}"
-
-configpath="${path}/${config}"
 printf "%s\n" "${configpath}"
-
-run="docker run -e HEX_PUB_KEY=${hex_pub_key} -e HEX_PRI_KEY=${hex_pri_key} -p ${port} -v ${path}:/home/envoy/custom ccr.ccs.tencentyun.com/weixincloud/wxsmgw:v1 /usr/local/bin/envoy -c /home/envoy/custom/${config} -l debug -d"
 printf "%s\n" "${run}"
-
-printf "\n%s\n" "----------config end----------"
+printf "\n%s\n" "-----------config end-----------"
 printf "${colorend}\n"
 
 # 检查docker安装
@@ -41,7 +35,9 @@ printf "${colorend}\n"
 # 创建文件夹
 
 echo "Create Dir ${path}"
-mkdir ${path}
+if [ ! -d ${path} ]; then
+    mkdir ${path}
+fi
 cd ${path}
 echo "Now path is ${path}"
 echo "Create Dir End"
@@ -52,6 +48,7 @@ echo " ...... "
 
 echo "Create ${config} Begin"
 
+if [ ! -f ${configpath} ]; then
 cat > ${configpath} <<- EOF
 admin:
   access_log_path: /dev/stdout
@@ -121,6 +118,7 @@ static_resources:
                 address: httpbin.org
                 port_value: 80
 EOF
+fi
 
 echo "Create Config Succ"
 
