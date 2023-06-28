@@ -11,42 +11,63 @@ folder="envoy"
 
 path="$(pwd)/${folder}"
 configpath="${path}/${config}"
+logpath="${path}/run.log"
 
 run="docker run -e HEX_PUB_KEY=${hex_pub_key} -e HEX_PRI_KEY=${hex_pri_key} -p ${port} -v ${path}:/home/envoy/custom ccr.ccs.tencentyun.com/weixincloud/wxsmgw:v1 /usr/local/bin/envoy -c /home/envoy/custom/${config} -l debug"
 
-colorbegin="\e[31m"
-colorend="\e[0m"
+red='\e[31m'
+yellow='\e[33m'
+green='\e[92m'
+blue='\e[94m'
+none='\e[0m'
 
-printf "${colorbegin}"
-printf "%s\n\n" "----------config begin----------"
-printf "%s\n" "${port}"
-printf "%s\n" "${hex_pub_key}"
-printf "%s\n" "${hex_pri_key}"
-printf "%s\n" "${config}"
-printf "%s\n" "${folder}"
-printf "%s\n" "${path}"
-printf "%s\n" "${configpath}"
-printf "%s\n" "${run}"
-printf "\n%s\n" "-----------config end-----------"
-printf "${colorend}\n"
+msg() {
+    case $1 in
+    warn)
+        local color=$yellow
+        ;;
+    err)
+        local color=$red
+        ;;
+    ok)
+        local color=$blue
+        ;;
+    esac
+
+    echo -e "[${color}$(date +'%T')] ${2}${none}"
+}
+
+msg ok "----------config begin----------"
+msg ok "${port}"
+msg ok "${hex_pub_key}"
+msg ok "${hex_pri_key}"
+msg ok "${config}"
+msg ok "${folder}"
+msg ok "${path}"
+msg ok "${configpath}"
+msg ok "${run}"
+msg ok "-----------config end-----------"
 
 # 检查docker安装
 
 # 创建文件夹
 
-echo "Create Dir ${path}"
+msg ok "Create Dir ${path}"
 if [ ! -d ${path} ]; then
     mkdir ${path}
+else
+    msg warn "Dir ${path} is exist"
 fi
-cd ${path}
-echo "Now path is ${path}"
-echo "Create Dir End"
 
-echo " ...... "
+cd ${path}
+msg ok "Now path is ${path}"
+msg ok "Create Dir End"
+
+msg ok " ...... "
 
 # 创建envoy.yaml配置文件
 
-echo "Create ${config} Begin"
+msg ok "Create ${config} Begin"
 
 if [ ! -f ${configpath} ]; then
 cat > ${configpath} <<- EOF
@@ -118,14 +139,16 @@ static_resources:
                 address: httpbin.org
                 port_value: 80
 EOF
+else
+    msg warn "file ${configpath} is exist"
 fi
 
-echo "Create Config Succ"
+msg ok "Create Config Succ"
 
-echo " ...... "
+msg ok " ...... "
 
-echo "Docker Run ..."
+msg ok "Docker Run Begin log is ${logpath}"
 
-$run
+$run >> ${logpath} 2>&1
 
-echo "Docker Run Succ"
+msg ok "Docker Close
