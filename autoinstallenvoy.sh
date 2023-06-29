@@ -3,8 +3,9 @@
 # 变量
 
 
-port1="9902"
-port2="9902"
+localport="9901"
+bindport="9902"
+envoyport="9902"
 hex_pub_key="0409F9DF311E5421A150DD7D161E4BC5C672179FAD1833FC076BB08FF356F35020CCEA490CE26775A52DC6EA718CC1AA600AED05FBF35E084A6632F6072DA9AD13"
 hex_pri_key="3945208F7B2144B13F36E38AC6D39F95889393692860B51A42FB81EF4DF7C5B8"
 config="envoy.yaml"
@@ -14,7 +15,7 @@ path="$(pwd)/${folder}"
 configpath="${path}/${config}"
 logpath="${path}/run.log"
 
-run="docker run -e HEX_PUB_KEY=${hex_pub_key} -e HEX_PRI_KEY=${hex_pri_key} -p ${port1}:${port2} -v ${path}:/home/envoy/custom ccr.ccs.tencentyun.com/weixincloud/wxsmgw:v1 /usr/local/bin/envoy -c /home/envoy/custom/${config} -l debug"
+run="docker run -e HEX_PUB_KEY=${hex_pub_key} -e HEX_PRI_KEY=${hex_pri_key} -p ${bindport}:${envoyport} -v ${path}:/home/envoy/custom ccr.ccs.tencentyun.com/weixincloud/wxsmgw:v1 /usr/local/bin/envoy -c /home/envoy/custom/${config} -l debug"
 
 red='\e[31m'
 yellow='\e[33m'
@@ -23,42 +24,47 @@ blue='\e[94m'
 none='\e[0m'
 
 msg() {
-    case $1 in
-    warn)
-        local color=$yellow
-        ;;
-    err)
-        local color=$red
-        ;;
-    ok)
-        local color=$green
-        ;;
-    esac
+    if [ $# -eq 2 ]; then
+        case $1 in
+        warn)
+            local color=$yellow
+            ;;
+        err)
+            local color=$red
+            ;;
+        ok)
+            local color=$blue
+            ;;
+        esac
 
-    echo -e "[${color}$(date +'%T')] ${2}${none}"
+        echo -e "[${color}$(date +'%T')] ${2}${none}"
+    else
+        local color=$green
+        echo -e "[${color}$(date +'%T')] ${1}${none}"
+    fi
 }
 
 show_config() {
-    msg ok "----------config begin----------"
-    msg ok "${port1}:${port2}"
-    msg ok "${hex_pub_key}"
-    msg ok "${hex_pri_key}"
-    msg ok "${config}"
-    msg ok "${folder}"
-    msg ok "${path}"
-    msg ok "${configpath}"
-    msg ok "${run}"
-    msg ok "-----------config end-----------"
+    msg "----------config begin----------"
+    msg "${localport}:${bindport}:${envoyport}"
+    msg "${hex_pub_key}"
+    msg "${hex_pri_key}"
+    msg "${config}"
+    msg "${folder}"
+    msg "${path}"
+    msg "${configpath}"
+    msg "${run}"
+    msg "-----------config end-----------"
 }
 
 # 检查docker安装
 check_docker() {
-    msg ok "check docker"
+    msg "check docker"
 }
 
 # 创建文件夹
 create_dir() {
-    msg ok "Create Dir ${path}"
+    msg "Create Dir ${path}"
     if [ ! -d ${path} ]; then
         mkdir ${path}
     else
@@ -66,22 +72,22 @@ create_dir() {
     fi
 
     cd ${path}
-    msg ok "Now path is ${path}"
-    msg ok "Create Dir End"
+    msg "Now path is ${path}"
+    msg "Create Dir End"
 }
 
 # 创建envoy.yaml配置文件
 
 create_config_file() {
 
-msg ok "Create ${config} Begin"
+msg "Create ${config} Begin"
 
 if [ ! -f ${configpath} ]; then
 cat > ${configpath} <<- EOF
 admin:
   access_log_path: /dev/stdout
   address:
-    socket_address: { address: 127.0.0.1, port_value: 9901 }
+    socket_address: { address: 127.0.0.1, port_value: ${localport} }
 
 static_resources:
   listeners:
@@ -90,7 +96,7 @@ static_resources:
       socket_address:
         protocol: TCP
         address: 0.0.0.0
-        port_value: 9902
+        port_value: ${bindport}
     filter_chains:
     - filters:
       - name: envoy.filters.network.http_connection_manager
@@ -150,16 +156,16 @@ else
     msg warn "file ${configpath} is exist"
 fi
 
-msg ok "Create Config Succ"
+msg "Create Config Succ"
 
 }
 
 docker_run() {
-    msg ok "Docker Run Begin log is ${logpath}"
+    msg "Docker Run Begin log is ${logpath}"
 
     $run >> ${logpath} 2>&1
 
-    msg ok "Docker Finish"
+    msg "Docker Finish"
 }
 
 main() {
