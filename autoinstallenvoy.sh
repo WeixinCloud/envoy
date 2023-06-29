@@ -35,39 +35,44 @@ msg() {
         ;;
     esac
 
-
     echo -e "[${color}$(date +'%T')] ${2}${none}"
 }
 
-msg ok "----------config begin----------"
-msg ok "${port1}:${port2}"
-msg ok "${hex_pub_key}"
-msg ok "${hex_pri_key}"
-msg ok "${config}"
-msg ok "${folder}"
-msg ok "${path}"
-msg ok "${configpath}"
-msg ok "${run}"
-msg ok "-----------config end-----------"
+show_config() {
+    msg ok "----------config begin----------"
+    msg ok "${port1}:${port2}"
+    msg ok "${hex_pub_key}"
+    msg ok "${hex_pri_key}"
+    msg ok "${config}"
+    msg ok "${folder}"
+    msg ok "${path}"
+    msg ok "${configpath}"
+    msg ok "${run}"
+    msg ok "-----------config end-----------"
+}
 
 # 检查docker安装
+check_docker() {
+    msg ok "check docker"
+}
 
 # 创建文件夹
+create_dir() {
+    msg ok "Create Dir ${path}"
+    if [ ! -d ${path} ]; then
+        mkdir ${path}
+    else
+        msg warn "Dir ${path} is exist"
+    fi
 
-msg ok "Create Dir ${path}"
-if [ ! -d ${path} ]; then
-    mkdir ${path}
-else
-    msg warn "Dir ${path} is exist"
-fi
-
-cd ${path}
-msg ok "Now path is ${path}"
-msg ok "Create Dir End"
-
-msg ok " ...... "
+    cd ${path}
+    msg ok "Now path is ${path}"
+    msg ok "Create Dir End"
+}
 
 # 创建envoy.yaml配置文件
+
+create_config_file() {
 
 msg ok "Create ${config} Begin"
 
@@ -147,10 +152,26 @@ fi
 
 msg ok "Create Config Succ"
 
-msg ok " ...... "
+}
 
-msg ok "Docker Run Begin log is ${logpath}"
+docker_run() {
+    msg ok "Docker Run Begin log is ${logpath}"
 
-$run >> ${logpath} 2>&1
+    $run >> ${logpath} 2>&1
 
-msg ok "Docker Close"
+    msg ok "Docker Finish"
+}
+
+main() {
+    show_config
+
+    check_docker
+
+    create_dir
+
+    create_config_file
+
+    docker_run
+}
+
+main $@
