@@ -15,7 +15,7 @@ path="$(pwd)/${folder}"
 configpath="${path}/${config}"
 logpath="${path}/run.log"
 
-run="docker run -e HEX_PUB_KEY=${hex_pub_key} -e HEX_PRI_KEY=${hex_pri_key} -p ${bindport}:${envoyport} -v ${path}:/home/envoy/custom ccr.ccs.tencentyun.com/weixincloud/wxsmgw:v1 /usr/local/bin/envoy -c /home/envoy/custom/${config} -l debug"
+run="docker run -d -e HEX_PUB_KEY=${hex_pub_key} -e HEX_PRI_KEY=${hex_pri_key} -p ${bindport}:${envoyport} -v ${path}:/home/envoy/custom ccr.ccs.tencentyun.com/weixincloud/wxsmgw:v1 /usr/local/bin/envoy -c /home/envoy/custom/${config} -l debug"
 
 red='\e[31m'
 yellow='\e[33m'
@@ -37,10 +37,41 @@ msg() {
             ;;
         esac
 
-        echo -e "[${color}$(date +'%T')] ${2}${none}"
+        echo -e "${color}[$(date +'%T')] ${2}${none}"
     else
         local color=$green
-        echo -e "[${color}$(date +'%T')] ${1}${none}"
+        echo -e "${color}[$(date +'%T')] ${1}${none}"
+    fi
+}
+
+show_help() {
+    msg err "Usage: $0 [-r | -i | -h]"
+    msg err "  -r, --run"
+    msg err "  -i, --install"
+    msg err "  -h, --help"
+
+    exit 0
+}
+
+pass_cmd() {
+    if [ $# -eq 0 ]; then
+        show_help
+    else
+        case $1 in
+        -r | --run)
+            docker_run
+            ;;
+        -i | --install)
+            install
+            ;;
+        -h | --help)
+            show_help
+            ;;
+        *)
+            msg err "Error args"
+            show_help
+            ;;
+        esac
     fi
 }
 
@@ -57,9 +88,15 @@ show_config() {
     msg "-----------config end-----------"
 }
 
+
+
 # 检查docker安装
 check_docker() {
     msg "check docker"
+    if ! [ -x "$(command -v docker)" ];then
+        msg err "ERROR: docker is not installed."
+        exit 1
+    fi
 }
 
 # 创建文件夹
@@ -161,14 +198,16 @@ msg "Create Config Succ"
 }
 
 docker_run() {
-    msg "Docker Run Begin log is ${logpath}"
+    msg "Docker Run Begin"
 
     $run >> ${logpath} 2>&1
 
-    msg "Docker Finish"
+    msg "Docker is Running log is ${logpath}"
+
+    docker container ls
 }
 
-main() {
+install() {
     show_config
 
     check_docker
@@ -178,6 +217,10 @@ main() {
     create_config_file
 
     docker_run
+}
+
+main() {
+    pass_cmd $@
 }
 
 main $@
