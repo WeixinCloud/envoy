@@ -2,7 +2,6 @@
 
 # 变量
 
-
 localport="9901"
 bindport="9902"
 envoyport="9902"
@@ -49,6 +48,7 @@ show_help() {
     msg err "  -r, --run"
     msg err "  -i, --install"
     msg err "  -h, --help"
+    msg err "  -d, --install_docker"
 
     exit 0
 }
@@ -66,6 +66,9 @@ pass_cmd() {
             ;;
         -h | --help)
             show_help
+            ;;
+        -d | --install_docker)
+            install_docker
             ;;
         *)
             msg err "Error args"
@@ -89,6 +92,12 @@ show_config() {
 }
 
 
+install_docker() {
+    msg "install docker begin"
+    curl -fsSL get.docker.com -o get-docker.sh
+    sudo sh get-docker.sh --mirror Aliyun
+    msg "install docker end"
+}
 
 # 检查docker安装
 check_docker() {
