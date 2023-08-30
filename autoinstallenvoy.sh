@@ -176,7 +176,7 @@ static_resources:
               hex_pri_key:
                 environment_variable: HEX_PRI_KEY
               pem_appid:
-                inline_string: WXFinGate_Test
+                inline_string: com.miniprogram.tencent
               pem_cert:
                 filename: /home/envoy/sm.crt
           - name: envoy.filters.http.router
