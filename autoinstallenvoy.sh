@@ -148,8 +148,6 @@ static_resources:
       - name: envoy.filters.network.http_connection_manager
         typed_config:
           "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
-          scheme_header_transformation:
-            scheme_to_overwrite: https
           stat_prefix: ingress_http
           access_log:
             - name: envoy.access_loggers.stdout
