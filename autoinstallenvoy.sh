@@ -14,7 +14,7 @@ path="$(pwd)/${folder}"
 configpath="${path}/${config}"
 logpath="${path}/run.log"
 
-run="docker run -d -e HEX_PUB_KEY=${hex_pub_key} -e HEX_PRI_KEY=${hex_pri_key} -p ${bindport}:${envoyport} -v ${path}:/home/envoy/custom ccr.ccs.tencentyun.com/weixincloud/wxsmgw:v1 /usr/local/bin/envoy -c /home/envoy/custom/${config} -l debug"
+run="docker run -d -e HEX_PUB_KEY=${hex_pub_key} -e HEX_PRI_KEY=${hex_pri_key} -p ${bindport}:${envoyport} -v ${path}:/home/envoy/custom ccr.ccs.tencentyun.com/weixincloud/wxsmgw:v2 /usr/local/bin/envoy -c /home/envoy/custom/${config} -l debug"
 
 red='\e[31m'
 yellow='\e[33m'
@@ -161,9 +161,22 @@ static_resources:
               routes:
               - match:
                   prefix: "/"
+                  headers:
+                    - name: x-wx-gw-ext
+                      string_match: 
+                        exact: "sm"
                 route:
                   auto_host_rewrite: true
                   cluster: httpbin
+              - match:
+                  prefix: "/"
+                route:
+                  auto_host_rewrite: true
+                  cluster: httpbin
+                typed_per_filter_config:
+                  sm:
+                    "@type": type.googleapis.com/sm.SMPerRoute
+                    enable: false
           http_filters:
           - name: sm
             typed_config:
