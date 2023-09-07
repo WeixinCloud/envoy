@@ -14,7 +14,7 @@ path="$(pwd)/${folder}"
 configpath="${path}/${config}"
 logpath="${path}/run.log"
 
-run="docker run -d -e HEX_PUB_KEY=${hex_pub_key} -e HEX_PRI_KEY=${hex_pri_key} -p ${bindport}:${envoyport} -v ${path}:/home/envoy/custom ccr.ccs.tencentyun.com/weixincloud/wxsmgw:v2 /usr/local/bin/envoy -c /home/envoy/custom/${config} -l debug"
+run="docker run -d -e HEX_PUB_KEY=${hex_pub_key} -e HEX_PRI_KEY=${hex_pri_key} -p ${bindport}:${envoyport} -v ${path}:/home/envoy/custom --log-opt max-size=100m --log-opt max-file=5 ccr.ccs.tencentyun.com/weixincloud/wxsmgw:v3 /usr/local/bin/envoy -c /home/envoy/custom/${config} -l debug"
 
 red='\e[31m'
 yellow='\e[33m'
@@ -187,7 +187,7 @@ static_resources:
               hex_pri_key:
                 environment_variable: HEX_PRI_KEY
               pem_appid:
-                inline_string: com.miniprogram.tencent
+                inline_string: wx_miniprogram
               pem_cert:
                 filename: /home/envoy/sm.crt
           - name: envoy.filters.http.router
